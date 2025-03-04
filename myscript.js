@@ -189,16 +189,21 @@ function rotateTetromino() {
   }
 }
 
-//다 채워진 줄 삭제 검사
-function clearLines() {
-  for (let row = ROWS - 1; row >= 0; row--) {
-    //한 행에 모든칸이 채워져 있으면
-    if (board[row].every(cell => cell)) { //cell이 0인지 검사
-      board.splice(row, 1); //해당 줄 삭제
-      board.unshift(Array(COLS).fill(0)); //맨 위에 새로운 빈 줄 추가 
 
-      score += 100; //점수 추가
-    }
+function clearLines() {
+  let newBoard = board.filter(row => row.some(cell => !cell)); //0이 포함된 줄 남김
+  let clearedLines = ROWS - newBoard.length; //삭제된 줄 개수 확인
+
+  //삭제된 줄 개수만큼 상단에 새로운 빈 줄 추가
+  while (newBoard.length < ROWS) {
+    newBoard.unshift(Array(COLS).fill(0));
+  }
+
+  board = newBoard;
+
+  //한번에 여러줄 삭제 - 줄 개수만큼 점수
+  if (clearedLines > 0) {
+    score += clearedLines * 100;
   }
 }
 
@@ -208,7 +213,7 @@ function startGame() {
     isGameRunning = true;
     startButton.style.display = "none"; //게임 시작하면 버튼 숨기기
     resetGame(); //게임 초기화
-    gameInterval = setInterval(update, 500);
+    gameInterval = setInterval(update, 350);
   }
 }
 
@@ -230,15 +235,23 @@ function gameOver() {
 
 
 function update() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBoard();
-  drawTetromino();
-  drawScore();
-  moveTetromino();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBoard();
+    drawTetromino();
+    drawScore();
+    moveTetromino();
 }
 
+
 // 키 이벤트 처리
+let lastKeyTime = 0;
+const KEY_DELAY = 10; //10ms 정도의 딜레이로 입력 속도 조정
+
 document.addEventListener("keydown", (e) => {
+  const currentTime = Date.now();
+  if (currentTime - lastKeyTime < KEY_DELAY) return;
+  lastKeyTime = currentTime;
+
   if (e.key === "ArrowLeft") {
     currentTetromino.col--; //좌측 이동 - ←
     if (isCollision()) currentTetromino.col++;
