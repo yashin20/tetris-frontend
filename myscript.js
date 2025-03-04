@@ -35,19 +35,46 @@ const TETROMINOS = [
   [[1, 1, 0], [0, 1, 1]] //Z
 ];
 
-
-let currentTetromino = createTetromino();
 //현재 블록의 위치 표시
 let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 
+
+//시작시 7종류의 블럭을 모두 한번씩 사용하는 함수
+function initializeQueue() {
+  let numbers = [0, 1, 2, 3, 4, 5, 6];
+  numbers.sort(() => Math.random() - 0.5); // 배열을 랜덤하게 섞기
+  return [...numbers]; // 새로운 큐 반환
+}
+
+// 큐 초기화
+let queue = initializeQueue();
+
+
+let lastTetromino = null;
+
 function createTetromino() {
-  const randomNum = Math.floor(Math.random() * TETROMINOS.length);
+
+  let randomNum;
+
+  // 처음 7개의 블록을 큐에서 하나씩 빼고
+  if (queue.length > 0) {
+    randomNum = queue.shift(); // 첫 7개 블록을 차례대로 뽑음
+  } else {
+    do {
+      // 8번째부터는 7개 종류 중 무작위로 선택
+      randomNum = Math.floor(Math.random() * TETROMINOS.length);
+    } while (randomNum === lastTetromino);
+  }
+
+  lastTetromino = randomNum; //현재 블럭을 기억해서 연속된 블럭 방지
+
+
   const currentPiece = {
     shape: TETROMINOS[randomNum], //랜덤 퍼즐 선택
     color: T_COLORS[randomNum], //퍼즐 색
     row: 0,
     col: 3
-  }
+  };
   return currentPiece
 }
 
@@ -105,7 +132,7 @@ function moveTetromino() {
 
 function hardDrop() {
   //충돌이 발생하지 않을때 까지 계속 하강
-  while(!isCollision()) {
+  while (!isCollision()) {
     currentTetromino.row++;
   }
 
@@ -188,9 +215,9 @@ function startGame() {
 
 function resetGame() {
   board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  queue = initializeQueue(); //시작 7블럭 큐 초기화
   currentTetromino = createTetromino(); //새로운 블록 생성
   score = 0; //점수 초기화
-  
   isGameRunning = false; //게임 상태 : 정지!
   clearInterval(gameInterval); //기존 게임 루프 제거
 }
