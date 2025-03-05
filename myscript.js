@@ -19,12 +19,16 @@ let gameInterval;
 const startButton = document.getElementById("startButton");
 startButton.addEventListener("click", startGame);
 
+const scoreDisplay = document.getElementById("scoreDisplay");
+const optionContainer = document.getElementById("optionContainer");
 
 
-// ["I", "O", "T", "L", "J", "S", "Z"]
+/**
+ * TETROMINO setting
+ */
+
+// TETROMINO 7가지 : ["I", "O", "T", "L", "J", "S", "Z"]
 const T_COLORS = ["skyblue", "yellow", "purple", "orange", "blue", "green", "red"];
-
-//퍼즐 종류 : 7가지
 const TETROMINOS = [
   [[1, 1, 1, 1]], //I
   [[1, 1], [1, 1]], //O
@@ -35,8 +39,6 @@ const TETROMINOS = [
   [[1, 1, 0], [0, 1, 1]] //Z
 ];
 
-//현재 블록의 위치 표시
-let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 
 
 //시작시 7종류의 블럭을 모두 한번씩 사용하는 함수
@@ -52,6 +54,9 @@ let queue = initializeQueue();
 
 let lastTetromino = null;
 
+/**
+ * 테트로미노 생성
+ */
 function createTetromino() {
 
   let randomNum;
@@ -78,6 +83,8 @@ function createTetromino() {
   return currentPiece
 }
 
+//현재 블록의 위치 표시
+let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 
 //보드 그리기
 function drawBoard() {
@@ -168,6 +175,7 @@ function isCollision() {
 //테트리미노 고정
 function placeTetromino() {
   const shape = currentTetromino.shape;
+
   for (let row = 0; row < shape.length; row++) {
     for (let col = 0; col < shape[row].length; col++) {
       if (shape[row][col]) {
@@ -181,9 +189,14 @@ function placeTetromino() {
 
 //테트리미노 회전
 function rotateTetromino() {
+  // 행렬을 시계방향 90도 회전
   const newShape = currentTetromino.shape[0].map((_, index) => currentTetromino.shape.map(row => row[index])).reverse();
+
+  //회전 전 모양 저장 (백업) - 충돌시 원복
   const originalShape = currentTetromino.shape;
   currentTetromino.shape = newShape;
+
+  //충돌 발생시 - 원복
   if (isCollision()) {
     currentTetromino.shape = originalShape;
   }
@@ -212,6 +225,8 @@ function startGame() {
   if (!isGameRunning) {
     isGameRunning = true;
     startButton.style.display = "none"; //게임 시작하면 버튼 숨기기
+    optionContainer.style.display = "none";
+    scoreDisplay.style.display = "none";
     resetGame(); //게임 초기화
     gameInterval = setInterval(update, 350);
   }
@@ -229,8 +244,11 @@ function resetGame() {
 
 function gameOver() {
   alert("Game Over!");
+  document.getElementById("scoreDisplay").textContent = "Score: " + score; // 점수 표시 업데이트
   resetGame();
   startButton.style.display = "inline"; //게임 오버 후 다시 버튼 보이기
+  optionContainer.style.display = "inline";
+  scoreDisplay.style.display = "inline";
 }
 
 
